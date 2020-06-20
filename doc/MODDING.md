@@ -219,6 +219,7 @@ Many editors have features that let you track `{ [` and `] }` to see if they're 
 Almost everything in this game can be modded. Almost. This section is intended to chart those areas not supported for modding to save time and headaches.
 
 The Names folder and contents (EN etcetera) confirmed 5/23/20
+NPC_old_guard_representative.json confirmed 6/20/20
 
 ## Addendum
 <!-- I really don't know if this should be here or not. Please let me know. -->
