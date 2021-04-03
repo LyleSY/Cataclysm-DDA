@@ -2,8 +2,6 @@
 #ifndef CATA_SRC_MAPGENDATA_H
 #define CATA_SRC_MAPGENDATA_H
 
-#include <algorithm>
-
 #include "calendar.h"
 #include "coordinates.h"
 #include "type_id.h"
@@ -13,7 +11,6 @@ class map;
 class mission;
 struct point;
 struct regional_settings;
-struct tripoint;
 
 namespace om_direction
 {
@@ -138,9 +135,9 @@ class mapgendata
             return t_below;
         }
         const oter_id &neighbor_at( om_direction::type dir ) const;
-        void fill_groundcover();
-        void square_groundcover( const point &p1, const point &p2 );
-        ter_id groundcover();
+        void fill_groundcover() const;
+        void square_groundcover( const point &p1, const point &p2 ) const;
+        ter_id groundcover() const;
         bool is_groundcover( const ter_id &iid ) const;
 };
 

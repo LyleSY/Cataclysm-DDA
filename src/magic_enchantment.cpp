@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <set>
+#include <string>
 
 #include "character.h"
 #include "creature.h"
@@ -9,11 +10,11 @@
 #include "enum_conversions.h"
 #include "enums.h"
 #include "generic_factory.h"
+#include "item.h"
 #include "json.h"
 #include "map.h"
 #include "point.h"
 #include "rng.h"
-#include "string_id.h"
 #include "units.h"
 
 namespace io
@@ -39,6 +40,7 @@ namespace io
         case enchantment::condition::ALWAYS: return "ALWAYS";
         case enchantment::condition::UNDERGROUND: return "UNDERGROUND";
         case enchantment::condition::UNDERWATER: return "UNDERWATER";
+        case enchantment::condition::ACTIVE: return "ACTIVE";
         case enchantment::condition::NUM_CONDITION: break;
         }
         debugmsg( "Invalid enchantment::condition" );
@@ -79,6 +81,7 @@ namespace io
             case enchant_vals::mod::SOCIAL_LIE: return "SOCIAL_LIE";
             case enchant_vals::mod::SOCIAL_PERSUADE: return "SOCIAL_PERSUADE";
             case enchant_vals::mod::SOCIAL_INTIMIDATE: return "SOCIAL_INTIMIDATE";
+            case enchant_vals::mod::SLEEPY: return "SLEEPY";
             case enchant_vals::mod::ARMOR_ACID: return "ARMOR_ACID";
             case enchant_vals::mod::ARMOR_BASH: return "ARMOR_BASH";
             case enchant_vals::mod::ARMOR_BIO: return "ARMOR_BIO";
@@ -88,6 +91,7 @@ namespace io
             case enchant_vals::mod::ARMOR_HEAT: return "ARMOR_HEAT";
             case enchant_vals::mod::ARMOR_STAB: return "ARMOR_STAB";
             case enchant_vals::mod::ARMOR_BULLET: return "ARMOR_BULLET";
+            case enchant_vals::mod::ITEM_DAMAGE_PURE: return "ITEM_DAMAGE_PURE";
             case enchant_vals::mod::ITEM_DAMAGE_BASH: return "ITEM_DAMAGE_BASH";
             case enchant_vals::mod::ITEM_DAMAGE_CUT: return "ITEM_DAMAGE_CUT";
             case enchant_vals::mod::ITEM_DAMAGE_STAB: return "ITEM_DAMAGE_STAB";
@@ -160,11 +164,14 @@ bool enchantment::is_active( const Character &guy, const item &parent ) const
         return false;
     }
 
-    return is_active( guy );
+    return is_active( guy, parent.active );
 }
 
-bool enchantment::is_active( const Character &guy ) const
+bool enchantment::is_active( const Character &guy, const bool active ) const
 {
+    if( active_conditions.second == condition::ACTIVE ) {
+        return active;
+    }
 
     if( active_conditions.second == condition::ALWAYS ) {
         return true;
@@ -273,12 +280,8 @@ void enchantment::serialize( JsonOut &jsout ) const
         jsout.member( "intermittent_activation" );
         jsout.start_object();
         for( const std::pair<time_duration, std::vector<fake_spell>> pair : intermittent_activation ) {
-            jsout.member( "duration", pair.first );
-            jsout.start_array( "effects" );
-            for( const fake_spell &sp : pair.second ) {
-                sp.serialize( jsout );
-            }
-            jsout.end_array();
+            jsout.member( "frequency", pair.first );
+            jsout.member( "spell_effects", pair.second );
         }
         jsout.end_object();
     }
@@ -505,4 +508,12 @@ void enchantment::cast_enchantment_spell( Character &caster, const Creature *tar
 
         spell_lvl.cast_all_effects( caster, trg_crtr.pos() );
     }
+}
+
+bool enchantment::operator==( const enchantment &rhs ) const
+{
+    return this->id == rhs.id &&
+           this->get_mutations() == rhs.get_mutations() &&
+           this->values_multiply == rhs.values_multiply &&
+           this->values_add == rhs.values_add;
 }

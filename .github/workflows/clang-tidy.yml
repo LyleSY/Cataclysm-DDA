@@ -4,9 +4,27 @@ on:
   push:
     branches:
     - master
+    - 0.F-dev
+    paths:
+    - '**.cpp'
+    - '**.h'
+    - '**.c'
+    - '**/CMakeLists.txt'
+    - '**/Makefile'
+    - '**.hpp'
+    - '**.cmake'
   pull_request:
     branches:
     - master
+    - 0.F-dev
+    paths:
+    - '**.cpp'
+    - '**.h'
+    - '**.c'
+    - '**/CMakeLists.txt'
+    - '**/Makefile'
+    - '**.hpp'
+    - '**.cmake'
 
 jobs:
   build:
@@ -22,7 +40,7 @@ jobs:
     - name: checkout repository
       uses: actions/checkout@v1
       with:
-        fetch-depth: 10
+        fetch-depth: 1
     - name: install dependencies
       run: |
           #sudo apt-add-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-8 main"
@@ -32,5 +50,6 @@ jobs:
             gettext
     - name: prepare
       run: bash ./build-scripts/requirements.sh
+    - uses: ammaraskar/gcc-problem-matcher@master
     - name: run clang-tidy
       run: bash ./build-scripts/build.sh

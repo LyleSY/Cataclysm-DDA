@@ -224,7 +224,7 @@
     "armor_bash": 30,
     "armor_cut": 50,
     "armor_bullet": 40,
-    "vision_day": 35,
+    "vision_day": 50,
     "vision_night": 10,
     "harvest": "zombie_kevlar",
     "special_attacks": [
@@ -293,6 +293,7 @@
     "default_faction": "zombie",
     "bodytype": "human",
     "species": [ "ZOMBIE", "HUMAN" ],
+    "diff": 5,
     "volume": "62500 ml",
     "weight": "81500 g",
     "hp": 100,

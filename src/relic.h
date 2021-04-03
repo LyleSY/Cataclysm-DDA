@@ -2,10 +2,9 @@
 #ifndef CATA_SRC_RELIC_H
 #define CATA_SRC_RELIC_H
 
-#include <algorithm>
 #include <climits>
 #include <cmath>
-#include <string>
+#include <iosfwd>
 #include <utility>
 #include <vector>
 
@@ -13,11 +12,11 @@
 #include "item.h"
 #include "magic.h"
 #include "magic_enchantment.h"
-#include "string_id.h"
 #include "translations.h"
 #include "type_id.h"
 #include "weighted_list.h"
 
+class Character;
 class Creature;
 class JsonIn;
 class JsonObject;
@@ -146,7 +145,7 @@ struct relic_charge_template {
     std::pair<int, int> init_charges;
     std::pair<int, int> charges_per_use;
     std::pair<time_duration, time_duration> time;
-    relic_recharge type;
+    relic_recharge type = relic_recharge::none;
 
     int power_level = 0;
 
@@ -157,6 +156,7 @@ struct relic_charge_template {
 
 struct relic_charge_info {
 
+    bool regenerate_ammo = false;
     int charges = 0;
     int charges_per_use = 0;
     int max_charges = 0;
@@ -173,7 +173,7 @@ struct relic_charge_info {
 
     // accumulates time for charge, and increases charge if it has enough accumulated.
     // assumes exactly one second has passed.
-    void accumulate_charge();
+    void accumulate_charge( item &parent );
 
     void deserialize( JsonIn &jsin );
     void load( const JsonObject &jo );
@@ -205,7 +205,7 @@ class relic
         // has a recharge type (which needs to be actively processed)
         bool has_recharge() const;
 
-        void try_recharge( const item &parent, Character *carrier, const tripoint &pos );
+        void try_recharge( item &parent, Character *carrier, const tripoint &pos );
 
         void load( const JsonObject &jo );
 
@@ -222,6 +222,8 @@ class relic
 
         // what is the power level of this artifact, given a specific ruleset
         int power_level( const relic_procgen_id &ruleset ) const;
+
+        friend bool operator==( const relic &source_relic, const relic &target_relic );
 };
 
 template <typename E> struct enum_traits;

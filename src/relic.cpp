@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <set>
+#include <string>
 
 #include "calendar.h"
 #include "character.h"
@@ -16,9 +17,22 @@
 #include "magic_enchantment.h"
 #include "map.h"
 #include "rng.h"
+#include "string_id.h"
 #include "translations.h"
 #include "type_id.h"
 #include "weather.h"
+#include "weather_type.h"
+
+/*
+ * A little helper function to tell if you can load one ammo into a gun.
+ * Checks if you can load ammo directly into the gun, or if you can load it into a magazine in the gun.
+ */
+static bool item_can_not_load_ammo( const item &gun )
+{
+    return ( gun.is_magazine() && gun.remaining_ammo_capacity() == 0 ) ||
+           ( !gun.is_magazine() && gun.magazine_current() == nullptr ) ||
+           ( gun.magazine_current() != nullptr && gun.magazine_current()->remaining_ammo_capacity() == 0 );
+}
 
 namespace io
 {
@@ -126,7 +140,7 @@ void relic_procgen_data::enchantment_active::deserialize( JsonIn &jsin )
 
 void relic_procgen_data::load( const JsonObject &jo, const std::string & )
 {
-    for( const JsonObject &jo_inner : jo.get_array( "passive_add_procgen_values" ) ) {
+    for( const JsonObject jo_inner : jo.get_array( "passive_add_procgen_values" ) ) {
         int weight = 0;
         mandatory( jo_inner, was_loaded, "weight", weight );
         relic_procgen_data::enchantment_value_passive<int> val;
@@ -135,7 +149,7 @@ void relic_procgen_data::load( const JsonObject &jo, const std::string & )
         passive_add_procgen_values.add( val, weight );
     }
 
-    for( const JsonObject &jo_inner : jo.get_array( "passive_mult_procgen_values" ) ) {
+    for( const JsonObject jo_inner : jo.get_array( "passive_mult_procgen_values" ) ) {
         int weight = 0;
         mandatory( jo_inner, was_loaded, "weight", weight );
         relic_procgen_data::enchantment_value_passive<float> val;
@@ -144,7 +158,7 @@ void relic_procgen_data::load( const JsonObject &jo, const std::string & )
         passive_mult_procgen_values.add( val, weight );
     }
 
-    for( const JsonObject &jo_inner : jo.get_array( "type_weights" ) ) {
+    for( const JsonObject jo_inner : jo.get_array( "type_weights" ) ) {
         int weight = 0;
         mandatory( jo_inner, was_loaded, "weight", weight );
         relic_procgen_data::type val = relic_procgen_data::type::last;
@@ -153,7 +167,7 @@ void relic_procgen_data::load( const JsonObject &jo, const std::string & )
         type_weights.add( val, weight );
     }
 
-    for( const JsonObject &jo_inner : jo.get_array( "items" ) ) {
+    for( const JsonObject jo_inner : jo.get_array( "items" ) ) {
         int weight = 0;
         mandatory( jo_inner, was_loaded, "weight", weight );
         itype_id it;
@@ -162,7 +176,7 @@ void relic_procgen_data::load( const JsonObject &jo, const std::string & )
         item_weights.add( it, weight );
     }
 
-    for( const JsonObject &jo_inner : jo.get_array( "active_procgen_values" ) ) {
+    for( const JsonObject jo_inner : jo.get_array( "active_procgen_values" ) ) {
         int weight = 0;
         mandatory( jo_inner, was_loaded, "weight", weight );
         relic_procgen_data::enchantment_active val;
@@ -171,7 +185,7 @@ void relic_procgen_data::load( const JsonObject &jo, const std::string & )
         active_procgen_values.add( val, weight );
     }
 
-    for( const JsonObject &jo_inner : jo.get_array( "charge_types" ) ) {
+    for( const JsonObject jo_inner : jo.get_array( "charge_types" ) ) {
         int weight = 0;
         mandatory( jo_inner, was_loaded, "weight", weight );
         relic_charge_template charge;
@@ -251,6 +265,7 @@ void relic_charge_info::load( const JsonObject &jo )
     jo.read( "charges_per_use", charges_per_use );
     jo.read( "max_charges", max_charges );
     jo.read( "recharge_type", type );
+    jo.read( "regenerate_ammo", regenerate_ammo );
     jo.read( "activation_accumulator", activation_accumulator );
     jo.read( "time", activation_time );
 }
@@ -261,22 +276,39 @@ void relic_charge_info::serialize( JsonOut &jsout ) const
     jsout.member( "charges", charges );
     jsout.member( "charges_per_use", charges_per_use );
     jsout.member( "max_charges", max_charges );
+    jsout.member( "regenerate_ammo", regenerate_ammo );
     jsout.member( "recharge_type", type );
     jsout.member( "activation_accumulator", activation_accumulator );
     jsout.member( "time", activation_time );
     jsout.end_object();
 }
 
-void relic_charge_info::accumulate_charge()
+void relic_charge_info::accumulate_charge( item &parent )
 {
-    if( charges >= max_charges || activation_time == 0_seconds ) {
-        // return early, no accumulation required
+    const bool time = activation_time == 0_seconds;
+    const bool regen_ammo = regenerate_ammo && item_can_not_load_ammo( parent );
+    const bool has_max_charges = !regenerate_ammo && charges >= max_charges && max_charges != 0;
+    if( time || regen_ammo || has_max_charges ) {
         return;
     }
+
     activation_accumulator += 1_seconds;
     if( activation_accumulator >= activation_time ) {
         activation_accumulator -= activation_time;
-        charges++;
+        if( regenerate_ammo ) {
+            item *current_magazine = &parent;
+            if( parent.magazine_current() ) {
+                current_magazine = parent.magazine_current();
+            }
+            const itype_id current_ammo = current_magazine->ammo_current();
+            if( current_ammo == itype_id::NULL_ID() ) {
+                current_magazine->ammo_set( current_magazine->ammo_default(), 1 );
+            } else {
+                current_magazine->ammo_set( current_ammo, current_magazine->ammo_remaining() + 1 );
+            }
+        } else {
+            charges++;
+        }
     }
 }
 
@@ -389,9 +421,11 @@ static bool can_recharge_solar( const item &it, Character *carrier, const tripoi
              carrier->is_worn( it ) || carrier->is_wielding( it ) );
 }
 
-void relic::try_recharge( const item &parent, Character *carrier, const tripoint &pos )
+void relic::try_recharge( item &parent, Character *carrier, const tripoint &pos )
 {
-    if( charge.charges == charge.max_charges ) {
+    if( charge.regenerate_ammo && item_can_not_load_ammo( parent ) ) {
+        return;
+    } else if( !charge.regenerate_ammo && charge.charges >= charge.max_charges ) {
         return;
     }
 
@@ -400,13 +434,13 @@ void relic::try_recharge( const item &parent, Character *carrier, const tripoint
             return;
         }
         case relic_recharge::periodic: {
-            charge.accumulate_charge();
+            charge.accumulate_charge( parent );
             return;
         }
         case relic_recharge::solar_sunny: {
             if( can_recharge_solar( parent, carrier, pos ) &&
                 get_weather().weather_id->light_modifier >= 0 ) {
-                charge.accumulate_charge();
+                charge.accumulate_charge( parent );
             }
             return;
         }
@@ -661,4 +695,23 @@ relic relic_procgen_data::generate( const relic_procgen_data::generation_rules &
     }
 
     return ret;
+}
+
+bool operator==( const relic &source_relic, const relic &target_relic )
+{
+    bool is_the_same = true;
+    is_the_same &= ( source_relic.charges() == target_relic.charges() );
+    is_the_same &= ( source_relic.charges_per_use() == target_relic.charges_per_use() );
+    is_the_same &= ( source_relic.has_activation() == target_relic.has_activation() );
+    is_the_same &= ( source_relic.has_recharge() == target_relic.has_recharge() );
+    is_the_same &= ( source_relic.max_charges() == target_relic.max_charges() );
+    is_the_same &= ( source_relic.name() == target_relic.name() );
+
+    is_the_same &= ( source_relic.get_enchantments().size() == target_relic.get_enchantments().size() );
+    if( is_the_same ) {
+        for( std::size_t i = 0; i < source_relic.get_enchantments().size(); i++ ) {
+            is_the_same &= source_relic.get_enchantments()[i] == target_relic.get_enchantments()[i];
+        }
+    }
+    return is_the_same;
 }

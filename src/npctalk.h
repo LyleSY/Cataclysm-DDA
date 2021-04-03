@@ -4,6 +4,7 @@
 
 #include "type_id.h"
 
+class item;
 class npc;
 class time_duration;
 
@@ -66,9 +67,12 @@ void deny_train( npc & );            // p gets "asked_to_train"
 void deny_personal_info( npc & );    // p gets "asked_personal_info"
 void hostile( npc & );               // p turns hostile to u
 void flee( npc & );
+void lightning( npc &p );
 void leave( npc & );                 // p becomes indifferent
 void stop_following( npc & );
 void stranger_neutral( npc & );      // p is now neutral towards you
+
+bool drop_stolen_item( item &cur_item, npc &p );
 
 void start_mugging( npc & );
 void player_leaving( npc & );
