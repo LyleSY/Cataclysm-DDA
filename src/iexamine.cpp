@@ -90,6 +90,7 @@
 #include "timed_event.h"
 #include "translations.h"
 #include "trap.h"
+#include "try_parse_integer.h"
 #include "ui.h"
 #include "ui_manager.h"
 #include "uistate.h"
@@ -747,7 +748,7 @@ class atm_menu
                     // the next turn. Putting this here makes sure there will be something to be
                     // done next turn.
                     u.assign_activity( ACT_ATM, 0, transfer_all_money );
-                    u.activity.targets.push_back( item_location( u, dst ) );
+                    u.activity.targets.emplace_back( u, dst );
                     break;
                 }
                 // should we check for max capacity here?
@@ -1078,12 +1079,24 @@ void iexamine::cardreader( player &p, const tripoint &examp )
                            itype_id_industrial );
     if( p.has_amount( card_type, 1 ) && query_yn( _( "Swipe your ID card?" ) ) ) {
         p.mod_moves( -to_moves<int>( 1_seconds ) );
+
         for( const tripoint &tmp : here.points_in_radius( examp, 3 ) ) {
             if( here.ter( tmp ) == t_door_metal_locked ) {
                 here.ter_set( tmp, t_door_metal_c );
                 open = true;
             }
         }
+
+        add_msg( m_info, _( "You insert your ID card." ) );
+
+        if( open ) {
+            add_msg( m_good, _( "The nearby doors unlock." ) );
+        } else {
+            add_msg( m_info, _( "The nearby doors are already opened." ) );
+        }
+
+        p.use_amount( card_type, 1 );
+
         for( monster &critter : g->all_monsters() ) {
             // Check 1) same overmap coords, 2) turret, 3) hostile
             if( ms_to_omt_copy( here.getabs( critter.pos() ) ) == ms_to_omt_copy( here.getabs( examp ) ) &&
@@ -1091,13 +1104,6 @@ void iexamine::cardreader( player &p, const tripoint &examp )
                 critter.attitude_to( p ) == Creature::Attitude::HOSTILE ) {
                 g->remove_zombie( critter );
             }
-        }
-        if( open ) {
-            add_msg( _( "You insert your ID card." ) );
-            add_msg( m_good, _( "The nearby doors unlock." ) );
-            p.use_amount( card_type, 1 );
-        } else {
-            add_msg( _( "The nearby doors are already opened." ) );
         }
     } else if( query_yn( _( "Attempt to hack this card-reader?" ) ) ) {
         try_start_hacking( p, examp );
@@ -1378,7 +1384,7 @@ void iexamine::pit( player &p, const tripoint &examp )
         return;
     }
     std::vector<item_comp> planks;
-    planks.push_back( item_comp( itype_2x4, 1 ) );
+    planks.emplace_back( itype_2x4, 1 );
 
     map &here = get_map();
     if( query_yn( _( "Place a plank over the pit?" ) ) ) {
@@ -2415,7 +2421,7 @@ void iexamine::harvest_plant( player &p, const tripoint &examp, bool from_activi
             if( from_activity ) {
                 i.set_var( "activity_var", p.name );
             }
-            here.add_item_or_charges( examp, i );
+            here.add_item_or_charges( p.pos(), i );
         }
         here.furn_set( examp, furn_str_id( here.furn( examp )->plant->transform ) );
         p.moves -= to_moves<int>( 10_seconds );
@@ -3559,7 +3565,7 @@ void iexamine::tree_maple( player &p, const tripoint &examp )
     }
 
     std::vector<item_comp> comps;
-    comps.push_back( item_comp( itype_tree_spile, 1 ) );
+    comps.emplace_back( itype_tree_spile, 1 );
     p.consume_items( comps, 1, is_crafting_component );
 
     p.mod_moves( -to_moves<int>( 20_seconds ) );
@@ -4026,7 +4032,7 @@ void iexamine::sign( player &p, const tripoint &examp )
     } );
     tools.reserve( filter.size() );
     for( const item *writing_item : filter ) {
-        tools.push_back( tool_comp( writing_item->typeId(), 1 ) );
+        tools.emplace_back( writing_item->typeId(), 1 );
     }
 
     if( !tools.empty() ) {
@@ -4122,9 +4128,14 @@ cata::optional<tripoint> iexamine::getNearFilledGasTank( const tripoint &center,
 static int getGasDiscountCardQuality( const item &it )
 {
     for( const flag_id &tag : it.type->get_flags() ) {
-        int discount_value;
-        if( sscanf( tag->id.c_str(), "DISCOUNT_VALUE_%i", &discount_value ) == 1 ) {
-            return discount_value;
+        if( string_starts_with( tag->id.str(), "DISCOUNT_VALUE_" ) ) {
+            ret_val<int> discount_value =
+                try_parse_integer<int>( tag->id.str().substr( 15 ), false );
+            if( discount_value.success() ) {
+                return discount_value.value();
+            } else {
+                debugmsg( "Error parsing ammo DISCOUNT_VALUE_ suffix: %s", discount_value.str() );
+            }
         }
     }
     return 0;
@@ -4502,7 +4513,7 @@ void iexamine::ledge( player &p, const tripoint &examp )
                 add_msg( m_warning, _( "You are not going to jump over an obstacle only to fall down." ) );
             } else {
                 add_msg( m_info, _( "You jump over an obstacle." ) );
-                p.increase_activity_level( LIGHT_EXERCISE );
+                p.set_activity_level( LIGHT_EXERCISE );
                 g->place_player( dest );
             }
             break;
@@ -4543,7 +4554,7 @@ void iexamine::ledge( player &p, const tripoint &examp )
                 return;
             } else if( height == 1 ) {
                 const char *query;
-                p.increase_activity_level( MODERATE_EXERCISE );
+                p.set_activity_level( MODERATE_EXERCISE );
                 weary_mult = 1.0f / p.exertion_adjusted_move_multiplier( MODERATE_EXERCISE );
 
                 if( !has_grapnel ) {
@@ -4746,9 +4757,9 @@ void iexamine::autodoc( player &p, const tripoint &examp )
                 }
                 case 2: {
                     std::vector<std::string> choice_names;
-                    choice_names.push_back( _( "Personality_Override" ) );
+                    choice_names.emplace_back( _( "Personality_Override" ) );
                     for( size_t i = 0; i < 6; i++ ) {
-                        choice_names.push_back( _( "C0RR#PTED?D#TA" ) );
+                        choice_names.emplace_back( _( "C0RR#PTED?D#TA" ) );
                     }
                     int choice_index = uilist( _( "Choose bionic to uninstall" ), choice_names );
                     if( choice_index == 0 ) {
@@ -4798,8 +4809,9 @@ void iexamine::autodoc( player &p, const tripoint &examp )
     }
 
     autodoc_header +=
-        string_format( "\n\n<color_white>Internal supplies:</color>\n Arm splints: %d\n Leg splints: %d",
-                       arm_splints.size(), leg_splints.size() );
+        string_format(
+            _( "\n\n<color_white>Internal supplies:</color>\n Arm splints: %d\n Leg splints: %d" ),
+            arm_splints.size(), leg_splints.size() );
 
     uilist amenu;
     amenu.text = autodoc_header;
@@ -4826,7 +4838,7 @@ void iexamine::autodoc( player &p, const tripoint &examp )
         } );
         for( const item *anesthesia_item : a_filter ) {
             if( anesthesia_item->ammo_remaining() >= 1 ) {
-                anesth_kit.push_back( tool_comp( anesthesia_item->typeId(), 1 ) );
+                anesth_kit.emplace_back( anesthesia_item->typeId(), 1 );
                 drug_count += anesthesia_item->ammo_remaining();
             }
         }
@@ -4856,7 +4868,7 @@ void iexamine::autodoc( player &p, const tripoint &examp )
 
             if( !install_programs.empty() ) {
                 has_install_program = true;
-                progs.push_back( item_comp( install_programs[0]->typeId(), 1 ) );
+                progs.emplace_back( install_programs[0]->typeId(), 1 );
             }
 
             const int weight = units::to_kilogram( patient.bodyweight() ) / 10;
@@ -5416,7 +5428,7 @@ static void smoker_load_food( player &p, const tripoint &examp,
                 entries.push_back( smokable_item );
             }
             names.push_back( item::nname( smokable_item->typeId(), 1 ) );
-            comps.push_back( item_comp( smokable_item->typeId(), count ) );
+            comps.emplace_back( smokable_item->typeId(), count );
         }
     }
 
@@ -5465,7 +5477,7 @@ static void smoker_load_food( player &p, const tripoint &examp,
 
     // reload comps with chosen items and quantity
     comps.clear();
-    comps.push_back( item_comp( what->typeId(), amount ) );
+    comps.emplace_back( what->typeId(), amount );
 
     Character &player_character = get_player_character();
     // select from where to get the items from and place them
@@ -5525,7 +5537,7 @@ static void mill_load_food( player &p, const tripoint &examp,
                 entries.push_back( millable_item );
             }
             names.push_back( item::nname( millable_item->typeId(), 1 ) );
-            comps.push_back( item_comp( millable_item->typeId(), count ) );
+            comps.emplace_back( millable_item->typeId(), count );
         }
     }
 
@@ -5574,7 +5586,7 @@ static void mill_load_food( player &p, const tripoint &examp,
 
     // reload comps with chosen items and quantity
     comps.clear();
-    comps.push_back( item_comp( what->typeId(), amount ) );
+    comps.emplace_back( what->typeId(), amount );
 
     Character &player_character = get_player_character();
     // select from where to get the items from and place them
@@ -6124,7 +6136,8 @@ void iexamine::workbench_internal( player &p, const tripoint &examp,
                 break;
             }
             const recipe &rec = selected_craft->get_making();
-            if( p.has_recipe( &rec, p.crafting_inventory(), p.get_crafting_helpers() ) == -1 ) {
+            const inventory &inv = p.crafting_inventory();
+            if( p.has_recipe( &rec, inv, p.get_crafting_helpers() ) == -1 ) {
                 p.add_msg_player_or_npc(
                     _( "You don't know the recipe for the %s and can't continue crafting." ),
                     _( "<npcname> doesn't know the recipe for the %s and can't continue crafting." ),

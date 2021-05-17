@@ -51,6 +51,7 @@
 #include "string_formatter.h"
 #include "text_snippets.h"
 #include "translations.h"
+#include "try_parse_integer.h"
 #include "ui.h"
 #include "units.h"
 #include "value_ptr.h"
@@ -215,9 +216,19 @@ void Item_factory::finalize_pre( itype &obj )
 
     // set light_emission based on LIGHT_[X] flag
     for( const auto &f : obj.item_tags ) {
-        int ll;
-        if( sscanf( f.c_str(), "LIGHT_%i", &ll ) == 1 && ll > 0 ) {
-            obj.light_emission = ll;
+        if( string_starts_with( f.str(), "LIGHT_" ) ) {
+            ret_val<int> ll = try_parse_integer<int>( f.str().substr( 6 ), false );
+            if( ll.success() ) {
+                if( ll.value() > 0 ) {
+                    obj.light_emission = ll.value();
+                } else {
+                    debugmsg( "item %s specifies light emission of zero, which is redundant",
+                              obj.id.str() );
+                }
+            } else {
+                debugmsg( "error parsing integer light emission suffic for item %s: %s",
+                          obj.id.str(), ll.str() );
+            }
         }
     }
     // remove LIGHT_[X] flags
@@ -887,7 +898,6 @@ void Item_factory::init()
     add_iuse( "CHEW", &iuse::chew );
     add_iuse( "RPGDIE", &iuse::rpgdie );
     add_iuse( "BIRDFOOD", &iuse::feedbird );
-    add_iuse( "BURROW", &iuse::burrow );
     add_iuse( "CHOP_TREE", &iuse::chop_tree );
     add_iuse( "CHOP_LOGS", &iuse::chop_logs );
     add_iuse( "CIRCSAW_ON", &iuse::circsaw_on );
@@ -2565,7 +2575,7 @@ void hflesh_to_flesh( itype &item_template )
     // Only add "flesh" material if not already present
     if( old_size != mats.size() &&
         std::find( mats.begin(), mats.end(), material_id( "flesh" ) ) == mats.end() ) {
-        mats.push_back( material_id( "flesh" ) );
+        mats.emplace_back( "flesh" );
     }
 }
 
@@ -3392,10 +3402,10 @@ bool Item_factory::load_sub_ref( std::unique_ptr<Item_spawn_data> &ptr, const Js
                                         iname, gname ) );
     }
     if( obj.has_string( iname ) ) {
-        entries.push_back( std::make_pair( obj.get_string( iname ), false ) );
+        entries.emplace_back( obj.get_string( iname ), false );
     }
     if( obj.has_string( gname ) ) {
-        entries.push_back( std::make_pair( obj.get_string( gname ), true ) );
+        entries.emplace_back( obj.get_string( gname ), true );
     }
 
     const std::string subcontext = name + " of " + parent.context();

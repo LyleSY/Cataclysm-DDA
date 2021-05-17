@@ -177,6 +177,7 @@ class job_data
             const std::pair<activity_id, int> &b ) {
                 return a.second > b.second;
             } );
+            ret.reserve( pairs.size() );
             for( const std::pair<activity_id, int> &elem : pairs ) {
                 ret.push_back( elem.first );
             }
@@ -761,9 +762,9 @@ class npc : public player
 
         npc();
         npc( const npc & ) = delete;
-        npc( npc && );
+        npc( npc && ) noexcept;
         npc &operator=( const npc & ) = delete;
-        npc &operator=( npc && );
+        npc &operator=( npc && ) noexcept( list_is_noexcept );
         ~npc() override;
 
         bool is_player() const override {
@@ -1346,7 +1347,6 @@ class npc : public player
         // Dummy point that indicates that the goal is invalid.
         static constexpr tripoint_abs_omt no_goal_point{ tripoint_min };
         job_data job;
-        time_point last_updated;
         /**
          * Do some cleanup and caching as npc is being unloaded from map.
          */

@@ -1168,12 +1168,14 @@ class Creature : public location, public viewer
 
         int throw_resist = 0;
 
+        time_point last_updated;
+
         bool fake = false;
         Creature();
-        Creature( const Creature & ) = default;
-        Creature( Creature && ) = default;
-        Creature &operator=( const Creature & ) = default;
-        Creature &operator=( Creature && ) = default;
+        Creature( const Creature & );
+        Creature( Creature && ) noexcept;
+        Creature &operator=( const Creature & );
+        Creature &operator=( Creature && ) noexcept;
 
     protected:
         virtual void on_stat_change( const std::string &, int ) {}

@@ -4661,7 +4661,7 @@ void vehicle::consume_fuel( int load, bool idling )
     }
     // we want this to update the activity level whenever we're using muscle power to move
     if( load > 0 && fuel_left( fuel_type_muscle ) > 0 ) {
-        player_character.increase_activity_level( ACTIVE_EXERCISE );
+        player_character.set_activity_level( ACTIVE_EXERCISE );
         //do this as a function of current load
         // But only if the player is actually there!
         int eff_load = load / 10;
@@ -4911,7 +4911,8 @@ void vehicle::power_parts()
     int epower = engine_epower + total_accessory_epower_w() + total_alternator_epower_w();
 
     int delta_energy_bat = power_to_energy_bat( epower, 1_turns );
-    int battery_left, battery_capacity;
+    int battery_left;
+    int battery_capacity;
     std::tie( battery_left, battery_capacity ) = battery_power_level();
     int storage_deficit_bat = std::max( 0, battery_capacity - battery_left - delta_energy_bat );
     Character &player_character = get_player_character();
@@ -6739,7 +6740,8 @@ int vehicle::damage_direct( int p, int dmg, damage_type type )
     if( parts[p].is_fuel_store() ) {
         explode_fuel( p, type );
     } else if( parts[ p ].is_broken() && part_flag( p, "UNMOUNT_ON_DAMAGE" ) ) {
-        here.spawn_item( global_part_pos3( p ), part_info( p ).base_item, 1, 0, calendar::turn );
+        here.spawn_item( global_part_pos3( p ), part_info( p ).base_item, 1, 0, calendar::turn,
+                         part_info( p ).base_item.obj().damage_max() - 1 );
         monster *mon = get_monster( p );
         if( mon != nullptr && mon->has_effect( effect_harnessed ) ) {
             mon->remove_effect( effect_harnessed );
@@ -6851,7 +6853,8 @@ std::list<item> vehicle::use_charges( const vpart_position &vp, const itype_id &
     const cata::optional<vpart_reference> cargo_vp = vp.part_with_feature( "CARGO", true );
 
     const auto tool_wants_battery = []( const itype_id & type ) {
-        item tool( type, calendar::turn_zero ), mag( tool.magazine_default() );
+        item tool( type, calendar::turn_zero );
+        item mag( tool.magazine_default() );
         mag.contents.clear_items();
 
         return tool.contents.insert_item( mag, item_pocket::pocket_type::MAGAZINE_WELL ).success() &&
@@ -7211,7 +7214,7 @@ vehicle_part &vehicle::part( int part_num )
     return parts[part_num];
 }
 
-const vehicle_part &vehicle::cpart( int part_num ) const
+const vehicle_part &vehicle::part( int part_num ) const
 {
     return const_cast<vehicle_part &>( parts[part_num] );
 }

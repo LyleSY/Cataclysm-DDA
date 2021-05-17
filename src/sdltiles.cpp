@@ -545,7 +545,9 @@ void refresh_display()
 #endif
 #if defined(__ANDROID__)
     draw_terminal_size_preview();
-    draw_quick_shortcuts();
+    if( g ) {
+        draw_quick_shortcuts();
+    }
     draw_virtual_joystick();
 #endif
     SDL_RenderPresent( renderer.get() );
@@ -1552,7 +1554,7 @@ bool ignore_action_for_quick_shortcuts( const std::string &action )
 void add_quick_shortcut( quick_shortcuts_t &qsl, input_event &event, bool back,
                          bool reset_shortcut_last_used_action_counter )
 {
-    if( reset_shortcut_last_used_action_counter ) {
+    if( reset_shortcut_last_used_action_counter && g ) {
         event.shortcut_last_used_action_counter =
             g->get_user_action_counter();    // only used for DEFAULTMODE
     }
@@ -2902,7 +2904,8 @@ static void init_term_size_and_scaling_factor()
 
     if( scaling_factor > 1 ) {
 
-        int max_width, max_height;
+        int max_width;
+        int max_height;
 
         int current_display_id = std::stoi( get_option<std::string>( "DISPLAY" ) );
         SDL_DisplayMode current_display;

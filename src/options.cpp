@@ -33,6 +33,7 @@
 #include "string_formatter.h"
 #include "string_input_popup.h"
 #include "translations.h"
+#include "try_parse_integer.h"
 #include "ui_manager.h"
 #include "worldfactory.h"
 
@@ -852,17 +853,36 @@ void options_manager::cOpt::setValue( const std::string &sSetIn )
         bSet = sSetIn == "True" || sSetIn == "true" || sSetIn == "T" || sSetIn == "t";
 
     } else if( sType == "int" ) {
-        iSet = atoi( sSetIn.c_str() );
+        // Some integer values are stored with a '%', e.g. "100%".
+        std::string without_percent = sSetIn;
+        if( string_ends_with( without_percent, "%" ) ) {
+            without_percent.erase( without_percent.end() - 1 );
+        }
+        ret_val<int> val = try_parse_integer<int>( without_percent, false );
 
-        if( iSet < iMin || iSet > iMax ) {
+        if( val.success() ) {
+            iSet = val.value();
+
+            if( iSet < iMin || iSet > iMax ) {
+                iSet = iDefault;
+            }
+        } else {
+            debugmsg( "Error parsing option as integer: %s", val.str() );
             iSet = iDefault;
         }
 
     } else if( sType == "int_map" ) {
-        iSet = atoi( sSetIn.c_str() );
+        ret_val<int> val = try_parse_integer<int>( sSetIn, false );
 
-        auto item = findInt( iSet );
-        if( !item ) {
+        if( val.success() ) {
+            iSet = val.value();
+
+            auto item = findInt( iSet );
+            if( !item ) {
+                iSet = iDefault;
+            }
+        } else {
+            debugmsg( "Error parsing option as integer: %s", val.str() );
             iSet = iDefault;
         }
 
@@ -893,9 +913,10 @@ static std::vector<options_manager::id_and_option> build_resource_list(
 
     resource_option.clear();
     const auto resource_dirs = get_directories_with( filename, dirname, true );
+    const std::string slash_filename = "/" + filename;
 
     for( const std::string &resource_dir : resource_dirs ) {
-        read_from_file( resource_dir + "/" + filename, [&]( std::istream & fin ) {
+        read_from_file( resource_dir + slash_filename, [&]( std::istream & fin ) {
             std::string resource_name;
             std::string view_name;
             // should only have 2 values inside it, otherwise is going to only load the last 2 values
@@ -2087,11 +2108,6 @@ void options_manager::add_options_world_default()
     add( "SPAWN_DENSITY", "world_default", to_translation( "Spawn rate scaling factor" ),
          to_translation( "A scaling factor that determines density of monster spawns.  A higher number means more monsters." ),
          0.0, 50.0, 1.0, 0.1
-       );
-
-    add( "CARRION_SPAWNRATE", "world_default", to_translation( "Carrion spawn rate scaling factor" ),
-         to_translation( "A scaling factor that determines how often creatures spawn from rotting material.  A higher number means more carrion spawned." ),
-         0.0, 10.0, 1.0, 0.01, COPT_NO_HIDE
        );
 
     add( "ITEM_SPAWNRATE", "world_default", to_translation( "Item spawn scaling factor" ),

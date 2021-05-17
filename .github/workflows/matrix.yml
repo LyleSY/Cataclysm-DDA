@@ -73,16 +73,27 @@ jobs:
             tiles: 1
             native: osx
             title: Clang 12, macOS 10.15, Tiles
+          - compiler: g++
+            os: ubuntu-latest
+            cmake: 0
+            tiles: 1
+            title: GCC, Ubuntu cross-compile to MinGW-Win64, Tiles
+            ldflags: -static-libgcc -static-libstdc++
+            mxe_target: i686-w64-mingw32.static
+            wine: wine
     name: ${{ matrix.title }}
     runs-on: ${{ matrix.os }}
     env:
         CMAKE: ${{ matrix.cmake }}
         COMPILER: ${{ matrix.compiler }}
+        MXE_TARGET: ${{ matrix.mxe_target }}
+        WINE: ${{ matrix.wine }}
         OS: ${{ matrix.os }}
         TILES: ${{ matrix.tiles }}
         SOUND: ${{ matrix.tiles }}
         SANITIZE: ${{ matrix.sanitize }}
         TEST_STAGE: ${{ matrix.test-stage }}
+        LDFLAGS: ${{ matrix.ldflags }}
         EXTRA_TEST_OPTS: --error-format=github-action
         NATIVE: ${{ matrix.native }}
         GOLD: ${{ matrix.gold }}
@@ -99,6 +110,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install libncursesw5-dev libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev \
             libsdl2-mixer-dev libpulse-dev ccache gettext parallel
+    - name: install old GCC (ubuntu)
+      if: runner.os == 'Linux' && (matrix.compiler == 'g++-7' || matrix.compiler == 'g++-8')
+      run: |
+          sudo apt-get install g++-7 g++-8
     - name: install dependencies (mac)
       if: runner.os == 'macOS'
       run: |

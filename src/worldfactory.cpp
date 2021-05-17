@@ -31,6 +31,7 @@
 #include "string_formatter.h"
 #include "string_input_popup.h"
 #include "translations.h"
+#include "try_parse_integer.h"
 #include "ui_manager.h"
 
 using namespace std::placeholders;
@@ -117,9 +118,9 @@ worldfactory::worldfactory()
     , mman_ui( *mman )
 {
     // prepare tab display order
-    tabs.push_back( std::bind( &worldfactory::show_worldgen_tab_modselection, this, _1, _2, _3 ) );
-    tabs.push_back( std::bind( &worldfactory::show_worldgen_tab_options, this, _1, _2, _3 ) );
-    tabs.push_back( std::bind( &worldfactory::show_worldgen_tab_confirm, this, _1, _2, _3 ) );
+    tabs.emplace_back( std::bind( &worldfactory::show_worldgen_tab_modselection, this, _1, _2, _3 ) );
+    tabs.emplace_back( std::bind( &worldfactory::show_worldgen_tab_options, this, _1, _2, _3 ) );
+    tabs.emplace_back( std::bind( &worldfactory::show_worldgen_tab_confirm, this, _1, _2, _3 ) );
 }
 
 worldfactory::~worldfactory() = default;
@@ -415,7 +416,8 @@ WORLDPTR worldfactory::pick_world( bool show_prompt )
     mapLines[3] = true;
 
     std::map<int, std::vector<std::string> > world_pages;
-    size_t sel = 0, selpage = 0;
+    size_t sel = 0;
+    size_t selpage = 0;
 
     catacurses::window w_worlds_border;
     catacurses::window w_worlds_tooltip;
@@ -741,19 +743,20 @@ void worldfactory::draw_mod_list( const catacurses::window &w, int &start, size_
                     }
 
                     const mod_id &mod_entry_id = *iter;
-                    std::string mod_entry_name = string_format( _( " [%s]" ), mod_entry_id.str() );
+                    std::string mod_entry_name;
                     nc_color mod_entry_color = c_white;
                     if( mod_entry_id.is_valid() ) {
                         const MOD_INFORMATION &mod = *mod_entry_id;
-                        mod_entry_name = mod.name() + mod_entry_name;
+                        mod_entry_name = mod.name();
                         if( mod.obsolete ) {
                             mod_entry_color = c_dark_gray;
                         }
                     } else {
                         mod_entry_color = c_light_red;
-                        mod_entry_name = _( "N/A" ) + mod_entry_name;
+                        mod_entry_name = _( "N/A" );
 
                     }
+                    mod_entry_name += string_format( _( " [%s]" ), mod_entry_id.str() );
                     trim_and_print( w, point( 4, iNum - start ), wwidth, mod_entry_color, mod_entry_name );
 
                     if( w_shift ) {
@@ -966,8 +969,8 @@ int worldfactory::show_worldgen_tab_modselection( const catacurses::window &win,
     ui.on_screen_resize( init_windows );
 
     std::vector<std::string> headers;
-    headers.push_back( _( "Mod List" ) );
-    headers.push_back( _( "Mod Load Order" ) );
+    headers.emplace_back( _( "Mod List" ) );
+    headers.emplace_back( _( "Mod Load Order" ) );
 
     size_t active_header = 0;
     int startsel[2] = {0, 0};
@@ -1549,7 +1552,13 @@ void WORLD::load_options( JsonIn &jsin )
                                   jo.get_string( "value" ) );
 
         if( name == "CORE_VERSION" ) {
-            version = std::max( std::atoi( value.c_str() ), 0 );
+            ret_val<int> value_parsed = try_parse_integer<int>( value, false );
+            if( value_parsed.success() ) {
+                version = std::max( value_parsed.value(), 0 );
+            } else {
+                version = 0;
+                debugmsg( "Error parsing CORE_VERSION: %s", value_parsed.str() );
+            }
             continue;
         }
 

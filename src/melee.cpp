@@ -17,6 +17,7 @@
 
 #include "avatar.h"
 #include "bodypart.h"
+#include "cached_options.h"
 #include "calendar.h"
 #include "cata_utility.h"
 #include "character.h"
@@ -54,6 +55,7 @@
 #include "pimpl.h"
 #include "player.h"
 #include "point.h"
+#include "popup.h"
 #include "projectile.h"
 #include "rng.h"
 #include "sounds.h"
@@ -83,7 +85,6 @@ static const skill_id skill_unarmed( "unarmed" );
 static const skill_id skill_bashing( "bashing" );
 static const skill_id skill_melee( "melee" );
 
-static const efftype_id effect_badpoison( "badpoison" );
 static const efftype_id effect_beartrap( "beartrap" );
 static const efftype_id effect_bouldering( "bouldering" );
 static const efftype_id effect_contacts( "contacts" );
@@ -96,7 +97,6 @@ static const efftype_id effect_hit_by_player( "hit_by_player" );
 static const efftype_id effect_incorporeal( "incorporeal" );
 static const efftype_id effect_lightsnare( "lightsnare" );
 static const efftype_id effect_narcosis( "narcosis" );
-static const efftype_id effect_poison( "poison" );
 static const efftype_id effect_stunned( "stunned" );
 static const efftype_id effect_venom_dmg( "venom_dmg" );
 static const efftype_id effect_venom_weaken( "venom_weaken" );
@@ -476,7 +476,7 @@ bool Character::melee_attack( Creature &t, bool allow_special, const matec_id &f
         add_msg_if_player( m_info, _( "You lack the substance to affect anything." ) );
         return false;
     }
-    if( !is_adjacent( &t, true ) ) {
+    if( !is_adjacent( &t, fov_3d ) ) {
         return false;
     }
     return melee_attack_abstract( t, allow_special, force_technique, allow_unarmed );
@@ -514,7 +514,7 @@ bool Character::melee_attack_abstract( Creature &t, bool allow_special,
     }
 
     // Fighting is hard work
-    increase_activity_level( EXTRA_EXERCISE );
+    set_activity_level( EXTRA_EXERCISE );
 
     item *cur_weapon = allow_unarmed ? &used_weapon() : &weapon;
 
@@ -539,8 +539,29 @@ bool Character::melee_attack_abstract( Creature &t, bool allow_special,
         add_msg( m_bad, _( "This weapon is too unwieldy to attack with!" ) );
         return false;
     }
-
     int move_cost = attack_speed( *cur_weapon );
+
+    if( is_avatar() && move_cost > 1000 && calendar::turn > melee_warning_turn ) {
+        const auto &action = query_popup()
+                             .context( "CANCEL_ACTIVITY_OR_IGNORE_QUERY" )
+                             .message( _( "<color_light_red>Attacking with your %1$s will take a long time.  "
+                                          "Are you sure you want to continue?</color>" ),
+                                       cur_weapon->display_name() )
+                             .option( "YES" )
+                             .option( "NO" )
+                             .option( "IGNORE" )
+                             .query()
+                             .action;
+
+        if( action == "NO" ) {
+            return false;
+        }
+        if( action == "IGNORE" ) {
+            if( melee_warning_turn == calendar::turn_zero || melee_warning_turn <= calendar::turn ) {
+                melee_warning_turn = calendar::turn + 50_turns;
+            }
+        }
+    }
 
     const bool hits = hit_spread >= 0;
 
@@ -791,7 +812,7 @@ void Character::reach_attack( const tripoint &p )
     }
 
     // Fighting is hard work
-    increase_activity_level( EXTRA_EXERCISE );
+    set_activity_level( EXTRA_EXERCISE );
 
     Creature *critter = g->critter_at( p );
     // Original target size, used when there are monsters in front of our target
@@ -1675,7 +1696,8 @@ void Character::perform_technique( const ma_technique &technique, Creature &t, d
     }
 
     if( technique.disarms && p != nullptr && p->is_armed() ) {
-        here.add_item_or_charges( p->pos(), p->remove_weapon() );
+        item weap = p->remove_weapon();
+        here.add_item_or_charges( p->pos(), weap );
         if( p->is_player() ) {
             add_msg_if_npc( _( "<npcname> disarms you!" ) );
         } else {

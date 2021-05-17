@@ -6,7 +6,7 @@
 
 #include "avatar.h"
 #include "calendar.h"
-#include "catch/catch.hpp"
+#include "cata_catch.h"
 #include "character.h"
 #include "inventory.h"
 #include "item.h"
@@ -17,6 +17,7 @@
 
 struct itype;
 
+// NOLINTNEXTLINE(readability-function-size)
 TEST_CASE( "reload_magazine", "[magazine] [visitable] [item] [item_location]" )
 {
     const itype_id gun_id( "nato_assault_rifle" );

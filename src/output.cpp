@@ -719,11 +719,11 @@ bool query_int( int &result, const std::string &text )
     string_input_popup popup;
     popup.title( text );
     popup.text( "" ).only_digits( true );
-    popup.query();
+    int temp = popup.query_int();
     if( popup.canceled() ) {
         return false;
     }
-    result = atoi( popup.text().c_str() );
+    result = temp;
     return true;
 }
 
@@ -870,11 +870,12 @@ void draw_item_filter_rules( const catacurses::window &win, int starty, int heig
 
     starty += fold_and_print( win, point( 1, starty ), len, c_white,
                               _( "Search [<color_yellow>c</color>]ategory, [<color_yellow>m</color>]aterial, "
-                                 "[<color_yellow>q</color>]uality, [<color_yellow>n</color>]otes or "
+                                 "[<color_yellow>q</color>]uality, [<color_yellow>n</color>]otes, "
+                                 "[<color_yellow>s</color>]skill taught by books or "
                                  "[<color_yellow>d</color>]isassembled components." ) );
     fold_and_print( win, point( 1, starty ), len, c_white,
                     //~ An example of how to filter items based on category or material.
-                    _( "Examples: c:food,m:iron,q:hammering,n:toolshelf,d:pipe" ) );
+                    _( "Examples: c:food,m:iron,q:hammering,n:toolshelf,d:pipe,s:devices" ) );
     wnoutrefresh( win );
 }
 
@@ -2115,7 +2116,7 @@ void scrollingcombattext::add( const point &pos, direction p_oDir,
                     iter->advanceStepOffset();
                 }
             }
-            vSCT.push_back( cSCT( pos, p_oDir, p_sText, p_gmt, p_sText2, p_gmt2, p_sType ) );
+            vSCT.emplace_back( pos, p_oDir, p_sText, p_gmt, p_sText2, p_gmt2, p_sType );
         }
 
     }
@@ -2353,7 +2354,7 @@ std::vector<std::string> string_split( const std::string &text_in, char delim_in
     }
 
     if( text_in.back() == delim_in ) {
-        elems.push_back( "" );
+        elems.emplace_back( "" );
     }
 
     return elems;

@@ -408,6 +408,7 @@
     "techniques": [ "tec_fencing_feint", "tec_fencing_lunge", "tec_fencing_riposte", "tec_fencing_compound" ],
     "weapons": [
       "baton-extended",
+      "bio_blade_weapon",
       "broadsword",
       "broadsword_inferior",
       "broadsword_fake",
@@ -519,6 +520,7 @@
       "lucern_hammer",
       "lucern_hammerfake",
       "makeshift_halberd",
+      "makeshift_glaive",
       "pickaxe",
       "poleaxe",
       "primitive_axe"
@@ -790,6 +792,7 @@
       "arming_sword",
       "arming_sword_inferior",
       "arming_sword_fake",
+      "bio_blade_weapon",
       "broadsword",
       "broadsword_inferior",
       "broadsword_fake",
@@ -1058,6 +1061,7 @@
     ],
     "techniques": [ "niten_water_cut", "niten_red_leaf", "niten_stone_cut", "niten_timing_attack", "niten_feint" ],
     "weapons": [
+      "bio_blade_weapon",
       "bokken",
       "bokken_inferior",
       "bokken_fake",
@@ -1181,6 +1185,7 @@
       "machete",
       "machete_gimmick",
       "makeshift_halberd",
+      "makeshift_glaive",
       "makeshift_knife",
       "makeshift_machete",
       "naginata",
@@ -1312,6 +1317,7 @@
       "naginata_fake",
       "long_pole",
       "makeshift_halberd",
+      "makeshift_glaive",
       "pike",
       "pike_inferior",
       "pike_fake",

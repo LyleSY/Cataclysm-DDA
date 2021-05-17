@@ -17,6 +17,7 @@
 
 #include "calendar.h"
 #include "cata_utility.h"
+#include "compatibility.h"
 #include "craft_command.h"
 #include "enums.h"
 #include "gun_mode.h"
@@ -180,9 +181,9 @@ class item : public visitable
 
         item();
 
-        item( item && );
+        item( item && ) noexcept;
         item( const item & );
-        item &operator=( item && );
+        item &operator=( item && ) noexcept( list_is_noexcept );
         item &operator=( const item & );
 
         explicit item( const itype_id &id, time_point turn = calendar::turn, int qty = -1 );
@@ -1243,6 +1244,8 @@ class item : public visitable
         /** Returns true if the item is A: is SOLID and if it B: is of type LIQUID */
         bool is_frozen_liquid() const;
 
+        /** Returns empty string if the book teach no skill */
+        std::string get_book_skill() const;
         float get_specific_heat_liquid() const;
         float get_specific_heat_solid() const;
         float get_latent_heat() const;
@@ -2084,7 +2087,7 @@ class item : public visitable
         /**
          * Returns name of deceased being if it had any or empty string if not
          **/
-        std::string get_corpse_name();
+        std::string get_corpse_name() const;
         /**
          * Returns the translated item name for the item with given id.
          * The name is in the proper plural form as specified by the

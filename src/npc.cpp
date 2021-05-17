@@ -132,8 +132,8 @@ npc::npc()
     : restock( calendar::turn_zero )
     , companion_mission_time( calendar::before_time_starts )
     , companion_mission_time_ret( calendar::before_time_starts )
-    , last_updated( calendar::turn )
 {
+    last_updated = calendar::turn;
     submap_coords = point_zero;
     position.x = -1;
     position.y = -1;
@@ -202,8 +202,8 @@ standard_npc::standard_npc( const std::string &name, const tripoint &pos,
     }
 }
 
-npc::npc( npc && ) = default;
-npc &npc::operator=( npc && ) = default;
+npc::npc( npc && ) noexcept = default;
+npc &npc::operator=( npc && ) noexcept( list_is_noexcept ) = default;
 
 static std::map<string_id<npc_template>, npc_template> npc_templates;
 

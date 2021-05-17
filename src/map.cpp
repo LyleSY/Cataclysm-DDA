@@ -3030,7 +3030,7 @@ void map::smash_items( const tripoint &p, const int power, const std::string &ca
         const float volume_factor = std::max<float>( 40, i->volume() / units::legacy_volume_factor );
         float damage_chance = 10.0f * power / volume_factor;
         // Example:
-        // Power 40 (just below C4 epicenter) vs two-by-four
+        // Power 40 (just below C4 epicenter) vs plank
         // damage_chance = 10 * 40 / 40 = 10, material_factor = 8
         // Will deal 1 damage, then 20% chance for another point
         // Power 20 (grenade minus shrapnel) vs glass bottle
@@ -3078,7 +3078,7 @@ void map::smash_items( const tripoint &p, const int power, const std::string &ca
             // But save the contents, except for irremovable gunmods
             for( item *elem : i->contents.all_items_top() ) {
                 if( !elem->is_irremovable() ) {
-                    contents.push_back( item( *elem ) );
+                    contents.emplace_back( *elem );
                 }
             }
 
@@ -3491,7 +3491,7 @@ void map::bash_items( const tripoint &p, bash_params &params )
             params.did_bash = true;
             smashed_glass = true;
             for( const item *bashed_content : bashed_item->contents.all_items_top() ) {
-                smashed_contents.push_back( item( *bashed_content ) );
+                smashed_contents.emplace_back( *bashed_content );
             }
             bashed_item = bashed_items.erase( bashed_item );
         } else {
@@ -5149,7 +5149,7 @@ std::list<std::pair<tripoint, item *> > map::get_rc_items( const tripoint &p )
             map_stack items = i_at( pos );
             for( auto &elem : items ) {
                 if( elem.has_flag( flag_RADIO_ACTIVATION ) || elem.has_flag( flag_RADIO_CONTAINER ) ) {
-                    rc_pairs.push_back( std::make_pair( pos, &elem ) );
+                    rc_pairs.emplace_back( pos, &elem );
                 }
             }
         }
@@ -6884,8 +6884,8 @@ static void generate_uniform( const tripoint &p, const ter_id &terrain_type )
 void map::loadn( const tripoint &grid, const bool update_vehicles, bool _actualize )
 {
     // Cache empty overmap types
-    static const oter_id rock( "empty_rock" );
-    static const oter_id air( "open_air" );
+    static const oter_str_id rock( "empty_rock" );
+    static const oter_str_id air( "open_air" );
 
     dbg( D_INFO ) << "map::loadn(game[" << g.get() << "], worldx[" << abs_sub.x
                   << "], worldy[" << abs_sub.y << "], grid " << grid << ")";
@@ -6994,17 +6994,13 @@ void map::rotten_item_spawn( const item &item, const tripoint &pnt )
     if( mgroup.is_null() ) {
         return;
     }
-    const int chance = static_cast<int>( comest->rot_spawn_chance *
-                                         get_option<float>( "CARRION_SPAWNRATE" ) );
-    if( rng( 0, 100 ) < chance ) {
-        MonsterGroupResult spawn_details = MonsterGroupManager::GetResultFromGroup( mgroup );
-        add_spawn( spawn_details, pnt );
-        if( get_player_view().sees( pnt ) ) {
-            if( item.is_seed() ) {
-                add_msg( m_warning, _( "Something has crawled out of the %s plants!" ), item.get_plant_name() );
-            } else {
-                add_msg( m_warning, _( "Something has crawled out of the %s!" ), item.tname() );
-            }
+    MonsterGroupResult spawn_details = MonsterGroupManager::GetResultFromGroup( mgroup );
+    add_spawn( spawn_details, pnt );
+    if( get_player_view().sees( pnt ) ) {
+        if( item.is_seed() ) {
+            add_msg( m_warning, _( "Something has crawled out of the %s plants!" ), item.get_plant_name() );
+        } else {
+            add_msg( m_warning, _( "Something has crawled out of the %s!" ), item.tname() );
         }
     }
 }
@@ -7599,6 +7595,9 @@ void map::spawn_monsters_submap( const tripoint &gp, bool ignore_sight )
 
             const auto place_it = [&]( const tripoint & p ) {
                 monster *const placed = g->place_critter_at( make_shared_fast<monster>( tmp ), p );
+                if( !i.data.patrol_points_rel_ms.empty() ) {
+                    placed->set_patrol_route( i.data.patrol_points_rel_ms );
+                }
                 if( placed ) {
                     placed->on_load();
                 }

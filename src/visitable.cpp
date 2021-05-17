@@ -46,8 +46,6 @@ static const quality_id qual_BUTCHER( "BUTCHER" );
 
 static const bionic_id bio_ups( "bio_ups" );
 
-static const json_character_flag json_flag_BIONIC_TOGGLED( "BIONIC_TOGGLED" );
-
 /** @relates visitable */
 item *read_only_visitable::find_parent( const item &it ) const
 {
@@ -130,11 +128,11 @@ static int has_quality_from_vpart( const vehicle &veh, int part, const quality_i
 {
     int qty = 0;
 
-    point pos = veh.cpart( part ).mount;
+    point pos = veh.part( part ).mount;
     for( const auto &n : veh.parts_at_relative( pos, true ) ) {
 
         // only unbroken parts can provide tool qualities
-        if( !veh.cpart( n ).is_broken() ) {
+        if( !veh.part( n ).is_broken() ) {
             auto tq = veh.part_info( n ).qualities;
             auto iter = tq.find( qual );
 
@@ -233,11 +231,11 @@ static int max_quality_from_vpart( const vehicle &veh, int part, const quality_i
 {
     int res = INT_MIN;
 
-    point pos = veh.cpart( part ).mount;
+    point pos = veh.part( part ).mount;
     for( const auto &n : veh.parts_at_relative( pos, true ) ) {
 
         // only unbroken parts can provide tool qualities
-        if( !veh.cpart( n ).is_broken() ) {
+        if( !veh.part( n ).is_broken() ) {
             auto tq = veh.part_info( n ).qualities;
             auto iter = tq.find( qual );
 

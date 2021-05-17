@@ -397,7 +397,7 @@
     "price": 6000,
     "price_postapoc": 100,
     "material": [ "plastic" ],
-    "flags": [ "WATCH", "WATER_FRIENDLY", "BELTED", "FRAGILE", "ALLOWS_NATURAL_ATTACKS", "OVERSIZE" ],
+    "flags": [ "WATCH", "ALARMCLOCK", "WATER_FRIENDLY", "BELTED", "FRAGILE", "ALLOWS_NATURAL_ATTACKS", "OVERSIZE" ],
     "coverage": 15,
     "symbol": "[",
     "ammo": "battery",
@@ -461,8 +461,6 @@
       }
     ],
     "ammo": "battery",
-    "max_charges": 500,
-    "initial_charges": 500,
     "charges_per_use": 25,
     "warmth": 10,
     "material_thickness": 0.5,
@@ -1055,8 +1053,6 @@
       }
     ],
     "ammo": "battery",
-    "max_charges": 1000,
-    "initial_charges": 1000,
     "use_action": {
       "type": "transform",
       "msg": "A LED light in the %s flickers on.",
@@ -1131,8 +1127,6 @@
       }
     ],
     "ammo": "battery",
-    "max_charges": 1000,
-    "initial_charges": 1000,
     "use_action": {
       "type": "transform",
       "msg": "Initiating\nRunning suit integrity diagnostics…\nAll systems operational.",
@@ -2765,6 +2759,7 @@
     "//": "3M Peltors claim to go 100 hours on 2 AAs",
     "power_draw": 60,
     "ammo": "battery",
+    "charges_per_use": 1,
     "revert_to": "powered_earmuffs",
     "use_action": { "type": "transform", "menu_text": "Turn off", "msg": "The %s flicks off.", "target": "powered_earmuffs" },
     "covers": [ "head" ],

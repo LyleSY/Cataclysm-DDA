@@ -209,6 +209,7 @@ static const itype_id itype_steel_chunk( "steel_chunk" );
 static const itype_id itype_steel_plate( "steel_plate" );
 static const itype_id itype_UPS( "UPS" );
 static const itype_id itype_wire( "wire" );
+static const itype_id itype_chain( "chain" );
 static const itype_id itype_wool_staple( "wool_staple" );
 
 static const zone_type_id zone_type_FARM_PLOT( "FARM_PLOT" );
@@ -1554,7 +1555,7 @@ void activity_handlers::fill_liquid_do_turn( player_activity *act, player *p )
                         act_ref.set_to_null();
                     } else {
                         if( act_ref.str_values.empty() ) {
-                            act_ref.str_values.push_back( std::string() );
+                            act_ref.str_values.emplace_back( );
                         }
                         act_ref.str_values.at( 0 ) = serialize( liquid );
                     }
@@ -2305,6 +2306,10 @@ void activity_handlers::oxytorch_finish( player_activity *act, player *p )
         here.ter_set( pos, t_pit );
         here.spawn_item( pos, itype_spike, rng( 1, 19 ) );
         here.spawn_item( pos, itype_scrap, rng( 1, 8 ) );
+    } else if( ter == t_retractable_gate_c || ter == t_retractable_gate_l ) {
+        here.ter_set( pos, t_strconc_floor );
+        here.spawn_item( pos, itype_chain, rng( 1, 2 ) );
+        here.spawn_item( pos, itype_wire, rng( 8, 22 ) );
     } else if( ter == t_bars ) {
         if( here.ter( pos + point_east ) == t_sewage || here.ter( pos + point_south ) ==
             t_sewage ||
@@ -3584,6 +3589,10 @@ void activity_handlers::hacksaw_finish( player_activity *act, player *p )
         here.ter_set( pos, t_pit );
         here.spawn_item( p->pos(), itype_spike, 19 );
         here.spawn_item( p->pos(), itype_scrap, 8 );
+    } else if( ter == t_retractable_gate_c || ter == t_retractable_gate_l ) {
+        here.ter_set( pos, t_strconc_floor );
+        here.spawn_item( pos, itype_chain, rng( 1, 2 ) );
+        here.spawn_item( pos, itype_wire, rng( 8, 22 ) );
     } else if( ter == t_bars ) {
         if( here.ter( pos + point_east ) == t_sewage || here.ter( pos + point_south )
             == t_sewage ||
@@ -3942,7 +3951,7 @@ void activity_handlers::fertilize_plot_do_turn( player_activity *act, player *p 
     auto check_fertilizer = [&]( bool ask_user = true ) -> void {
         if( act->str_values.empty() )
         {
-            act->str_values.push_back( "" );
+            act->str_values.emplace_back( "" );
         }
         fertilizer = itype_id( act->str_values[0] );
 

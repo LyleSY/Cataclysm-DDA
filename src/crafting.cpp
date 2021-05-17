@@ -1169,7 +1169,7 @@ void Character::complete_craft( item &craft, const cata::optional<tripoint> &loc
     // Set up the new item, and assign an inventory letter if available
     std::vector<item> newits = making.create_results( batch_size );
 
-    const bool should_heat = making.hot_result();
+    const bool should_heat = making.hot_result() || making.removes_raw();
 
     bool first = true;
     size_t newit_counter = 0;
@@ -2314,7 +2314,7 @@ void Character::disassemble_all( bool one_pass )
     bool found_any = false;
     std::vector<item_location> to_disassemble;
     for( item &it : get_map().i_at( pos() ) ) {
-        to_disassemble.push_back( item_location( map_cursor( pos() ), &it ) );
+        to_disassemble.emplace_back( map_cursor( pos() ), &it );
     }
     for( item_location &it_loc : to_disassemble ) {
         // Prevent disassembling an in process disassembly because it could have been created by a previous iteration of this loop

@@ -6,6 +6,7 @@
 #include <llvm/ADT/StringRef.h>
 
 #include "ClangTidy.h"
+#include "Utils.h"
 
 namespace clang
 {
@@ -18,11 +19,40 @@ class ClangTidyContext;
 namespace cata
 {
 
+struct RestoredDecl {
+    const FunctionDecl *function;
+    const NamedDecl *variable;
+
+    bool operator==( const RestoredDecl &other ) const {
+        return function == other.function && variable == other.variable;
+    }
+};
+
+} // namespace cata
+} // namespace tidy
+} // namespace clang
+
+namespace std
+{
+template<>
+struct hash<clang::tidy::cata::RestoredDecl> {
+    std::size_t operator()( const clang::tidy::cata::RestoredDecl &r ) const noexcept {
+        return clang::tidy::cata::HashCombine( r.function, r.variable );
+    }
+};
+} // namespace std
+
+namespace clang
+{
+namespace tidy
+{
+namespace cata
+{
+
 class TestsMustRestoreGlobalStateCheck : public ClangTidyCheck
 {
     public:
-        TestsMustRestoreGlobalStateCheck( StringRef Name, ClangTidyContext *Context )
-            : ClangTidyCheck( Name, Context ) {}
+        TestsMustRestoreGlobalStateCheck( StringRef Name, ClangTidyContext *Context );
 
         void registerPPCallbacks( CompilerInstance &Compiler ) override;
         void registerMatchers( ast_matchers::MatchFinder *Finder ) override;
@@ -34,11 +64,12 @@ class TestsMustRestoreGlobalStateCheck : public ClangTidyCheck
         }
     private:
         bool is_test_file_ = false;
-        std::unordered_set<const NamedDecl *> restored_decls_;
+
+        std::unordered_set<RestoredDecl> restored_decls_;
 
         struct AssignmentToGlobal {
             const BinaryOperator *assignment;
-            const NamedDecl *lhsDecl;
+            RestoredDecl lhsDecl;
         };
 
         std::vector<AssignmentToGlobal> suspicious_assignments_;

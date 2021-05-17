@@ -741,14 +741,18 @@ void emp_blast( const tripoint &p )
                 }
             }
         } else if( critter.has_flag( MF_ELECTRIC_FIELD ) ) {
-            if( sight && !critter.has_effect( effect_emp ) ) {
-                add_msg( m_good, _( "The %s's electrical field momentarily goes out!" ), critter.name() );
+            if( !critter.has_effect( effect_emp ) ) {
+                if( sight ) {
+                    add_msg( m_good, _( "The %s's electrical field momentarily goes out!" ), critter.name() );
+                }
                 critter.add_effect( effect_emp, 3_minutes );
-            } else if( sight && critter.has_effect( effect_emp ) ) {
+            } else if( critter.has_effect( effect_emp ) ) {
                 int dam = dice( 3, 5 );
-                add_msg( m_good, _( "The %s's disabled electrical field reverses polarity!" ),
-                         critter.name() );
-                add_msg( m_good, _( "It takes %d damage." ), dam );
+                if( sight ) {
+                    add_msg( m_good, _( "The %s's disabled electrical field reverses polarity!" ),
+                             critter.name() );
+                    add_msg( m_good, _( "It takes %d damage." ), dam );
+                }
                 critter.add_effect( effect_emp, 1_minutes );
                 critter.apply_damage( nullptr, bodypart_id( "torso" ), dam );
                 critter.check_dead_state();
@@ -795,8 +799,10 @@ void resonance_cascade( const tripoint &p )
                                                 player_character.pos() ) ) );
         player_character.add_effect( effect_teleglow, rng( minglow, maxglow ) * 100 );
     }
-    int startx = ( p.x < 8 ? 0 : p.x - 8 ), endx = ( p.x + 8 >= SEEX * 3 ? SEEX * 3 - 1 : p.x + 8 );
-    int starty = ( p.y < 8 ? 0 : p.y - 8 ), endy = ( p.y + 8 >= SEEY * 3 ? SEEY * 3 - 1 : p.y + 8 );
+    int startx = ( p.x < 8 ? 0 : p.x - 8 );
+    int endx = ( p.x + 8 >= SEEX * 3 ? SEEX * 3 - 1 : p.x + 8 );
+    int starty = ( p.y < 8 ? 0 : p.y - 8 );
+    int endy = ( p.y + 8 >= SEEY * 3 ? SEEY * 3 - 1 : p.y + 8 );
     tripoint dest( startx, starty, p.z );
     map &here = get_map();
     for( int &i = dest.x; i <= endx; i++ ) {

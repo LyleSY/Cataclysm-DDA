@@ -226,8 +226,8 @@ player::player()
 }
 
 player::~player() = default;
-player::player( player && ) = default;
-player &player::operator=( player && ) = default;
+player::player( player && ) noexcept = default;
+player &player::operator=( player && ) noexcept( list_is_noexcept ) = default;
 
 void player::normalize()
 {
@@ -1526,7 +1526,9 @@ bool player::list_ammo( const item &base, std::vector<item::reload_option> &ammo
             if( can_reload( *e, id ) &&
                 ( speedloader || e->ammo_remaining() == 0 ||
                   e->ammo_remaining() < ammo->ammo_remaining() ||
-                  e->loaded_ammo().stacks_with( *ammo ) ) ) {
+                  e->loaded_ammo().stacks_with( *ammo ) ||
+                  ( ammo->made_of_from_type( phase_id::LIQUID ) &&
+                    e->contents.remaining_capacity_for_liquid( *ammo ) > 0 ) ) ) {
                 ammo_list.emplace_back( this, e, &base, std::move( ammo ) );
             }
         }
@@ -2235,8 +2237,8 @@ void player::gunmod_add( item &gun, item &mod )
     const int moves = !has_trait( trait_DEBUG_HS ) ? mod.type->gunmod->install_time : 0;
 
     assign_activity( activity_id( "ACT_GUNMOD_ADD" ), moves, -1, 0, tool );
-    activity.targets.push_back( item_location( *this, &gun ) );
-    activity.targets.push_back( item_location( *this, &mod ) );
+    activity.targets.emplace_back( *this, &gun );
+    activity.targets.emplace_back( *this, &mod );
     activity.values.push_back( 0 ); // dummy value
     activity.values.push_back( roll ); // chance of success (%)
     activity.values.push_back( risk ); // chance of damage (%)

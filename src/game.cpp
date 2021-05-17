@@ -416,7 +416,7 @@ bool game::check_mod_data( const std::vector<mod_id> &opts, loading_ui &ui )
         std::string world_name = world_generator->active_world->world_name;
         world_generator->delete_world( world_name, true );
 
-        MAPBUFFER.reset();
+        MAPBUFFER.clear();
         overmap_buffer.clear();
     }
 
@@ -460,7 +460,7 @@ bool game::check_mod_data( const std::vector<mod_id> &opts, loading_ui &ui )
         std::string world_name = world_generator->active_world->world_name;
         world_generator->delete_world( world_name, true );
 
-        MAPBUFFER.reset();
+        MAPBUFFER.clear();
         overmap_buffer.clear();
     }
     return true;
@@ -862,15 +862,15 @@ vehicle *game::place_vehicle_nearby(
     if( search_types.empty() ) {
         vehicle veh( id );
         if( veh.max_ground_velocity() > 0 ) {
-            search_types.push_back( "road" );
-            search_types.push_back( "field" );
+            search_types.emplace_back( "road" );
+            search_types.emplace_back( "field" );
         } else if( veh.can_float() ) {
-            search_types.push_back( "river" );
-            search_types.push_back( "lake" );
+            search_types.emplace_back( "river" );
+            search_types.emplace_back( "lake" );
         } else {
             // some default locations
-            search_types.push_back( "road" );
-            search_types.push_back( "field" );
+            search_types.emplace_back( "road" );
+            search_types.emplace_back( "field" );
         }
     }
     for( const std::string &search_type : search_types ) {
@@ -1285,7 +1285,7 @@ bool game::cleanup_at_end()
     sfx::fade_audio_group( sfx::group::context_themes, 300 );
     sfx::fade_audio_group( sfx::group::fatigue, 300 );
 
-    MAPBUFFER.reset();
+    MAPBUFFER.clear();
     overmap_buffer.clear();
 
 #if defined(__ANDROID__)
@@ -1678,12 +1678,6 @@ bool game::do_turn()
     // reset player noise
     u.volume = 0;
 
-    // This is a hack! Remove this when we have per-turn activity tracking
-    // This prevents the display from erroneously updating when we use more
-    // than our allotted moves in a single turn
-    if( u.moves < 0 ) {
-        u.increase_activity_level( NO_EXERCISE );
-    }
     return false;
 }
 
@@ -2938,7 +2932,8 @@ bool game::load( const save_t &name )
     u.name = name.player_name();
     // This should be initialized more globally (in player/Character constructor)
     u.weapon = item();
-    if( !read_from_file( playerpath + SAVE_EXTENSION, std::bind( &game::unserialize, this, _1 ) ) ) {
+    const std::string save_filename = playerpath + SAVE_EXTENSION;
+    if( !read_from_file( save_filename, std::bind( &game::unserialize, this, _1, save_filename ) ) ) {
         return false;
     }
 
@@ -2946,12 +2941,14 @@ bool game::load( const save_t &name )
         u.deserialize_map_memory( jsin );
     } );
 
-    read_from_file_optional( worldpath + name.base_path() + SAVE_EXTENSION_LOG,
-                             std::bind( &memorial_logger::load, &memorial(), _1 ) );
+    const std::string log_filename = worldpath + name.base_path() + SAVE_EXTENSION_LOG;
+    read_from_file_optional( log_filename,
+                             std::bind( &memorial_logger::load, &memorial(), _1, log_filename ) );
 
 #if defined(__ANDROID__)
-    read_from_file_optional( worldpath + name.base_path() + SAVE_EXTENSION_SHORTCUTS,
-                             std::bind( &game::load_shortcuts, this, _1 ) );
+    const std::string shortcuts_filename = worldpath + name.base_path() + SAVE_EXTENSION_SHORTCUTS;
+    read_from_file_optional( shortcuts_filename,
+                             std::bind( &game::load_shortcuts, this, _1, shortcuts_filename ) );
 #endif
 
     // Now that the player's worn items are updated, their sight limits need to be
@@ -3340,8 +3337,8 @@ void game::display_faction_epilogues()
                 };
                 scrollable_text( new_win, elem.second.name,
                                  std::accumulate( epilogue.begin() + 1, epilogue.end(), epilogue.front(),
-                []( const std::string & lhs, const std::string & rhs ) -> std::string {
-                    return lhs + "\n" + rhs;
+                []( std::string lhs, const std::string & rhs ) -> std::string {
+                    return std::move( lhs ) + "\n" + rhs;
                 } ) );
             }
         }
@@ -10147,7 +10144,7 @@ point game::place_player( const tripoint &dest_loc )
                         u.assign_activity( activity_id( "ACT_PULP" ), calendar::INDEFINITELY_LONG, 0 );
                         u.activity.placement = m.getabs( pos );
                         u.activity.auto_resume = true;
-                        u.activity.str_values.push_back( "auto_pulp_no_acid" );
+                        u.activity.str_values.emplace_back( "auto_pulp_no_acid" );
                         return;
                     }
                 }
@@ -12260,7 +12257,7 @@ void game::quickload()
 
     if( active_world->save_exists( save_t::from_player_name( u.name ) ) ) {
         if( moves_since_last_save != 0 ) { // See if we need to reload anything
-            MAPBUFFER.reset();
+            MAPBUFFER.clear();
             overmap_buffer.clear();
             try {
                 setup();
@@ -12305,6 +12302,8 @@ void game::start_calendar()
     }
     calendar::start_of_game += 1_days * get_option<int>( "SPAWN_DELAY" );
     calendar::turn = calendar::start_of_game;
+    calendar::initial_season = static_cast<season_type>( ( to_days<int>( calendar::start_of_game -
+                               calendar::turn_zero ) / get_option<int>( "SEASON_LENGTH" ) ) % 4 );
 }
 
 overmap &game::get_cur_om() const
@@ -12394,7 +12393,7 @@ game::Creature_range::Creature_range( game &game_ref ) : u( &game_ref.u, []( pla
     const auto &monsters = game_ref.critter_tracker->get_monsters_list();
     items.insert( items.end(), monsters.begin(), monsters.end() );
     items.insert( items.end(), game_ref.active_npc.begin(), game_ref.active_npc.end() );
-    items.push_back( u );
+    items.emplace_back( u );
 }
 
 game::npc_range::npc_range( game &game_ref )
