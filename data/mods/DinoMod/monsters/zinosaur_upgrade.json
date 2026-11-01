@@ -4992,7 +4992,7 @@
     "description": "A hideously swollen zombified allosaurid theropod body towering into the sky.  Its massive body bulges with distended muscles and swollen, festering wounds.",
     "diff": 5,
     "color": "white_magenta",
-    "proportional": { "hp": 4, "speed": 1.25 },
+    "proportional": { "hp": 4, "speed": 1.25, "weight": 7.4 },
     "relative": {
       "melee_dice": 1,
       "melee_damage": { "damage_type": "cut", "amount": -4 },
@@ -5011,7 +5011,7 @@
     "description": "A hideously swollen zombified tyrannosaurid theropod body towering into the sky.  Its massive body bulges with distended muscles and swollen, festering wounds.",
     "diff": 5,
     "color": "white_magenta",
-    "proportional": { "hp": 4, "speed": 1.25 },
+    "proportional": { "hp": 4, "speed": 1.25, "weight": 7.4 },
     "relative": {
       "melee_dice": 1,
       "melee_damage": { "damage_type": "cut", "amount": -4 },
@@ -5030,7 +5030,7 @@
     "description": "A hideously swollen zombified sauropod body towering into the sky even more than usual.  Its massive body bulges with distended muscles and swollen, festering wounds.",
     "diff": 5,
     "color": "white_magenta",
-    "proportional": { "hp": 4, "speed": 1.25 },
+    "proportional": { "hp": 4, "speed": 1.25, "weight": 7.4 },
     "relative": {
       "melee_dice": 1,
       "melee_damage": { "damage_type": "bash", "amount": -4 },
@@ -5049,7 +5049,7 @@
     "description": "A hideously swollen zombified ankylosaurid body towering into the sky.  Its massive body bulges with distended muscles and enormous bony armor.",
     "diff": 5,
     "color": "white_magenta",
-    "proportional": { "hp": 4, "speed": 1.25 },
+    "proportional": { "hp": 4, "speed": 1.25, "weight": 7.4 },
     "relative": {
       "melee_dice": 1,
       "melee_damage": { "damage_type": "stab", "amount": -4 },
@@ -5068,7 +5068,7 @@
     "description": "A hideously swollen zombified ceratopsian body towering into the sky.  Its massive body bulges with distended muscles and swollen, festering wound.",
     "diff": 5,
     "color": "white_magenta",
-    "proportional": { "hp": 4, "speed": 1.25 },
+    "proportional": { "hp": 4, "speed": 1.25, "weight": 7.4 },
     "relative": {
       "melee_dice": 1,
       "melee_damage": { "damage_type": "stab", "amount": -4 },
@@ -5107,7 +5107,7 @@
     "copy-from": "mon_silophosaurus_brute",
     "description": "This hideous colossus of plated bones and misshapen flesh drags its heavy, pointed limbs behind it.  Already strong and dangerous, bones grew around its form to protect it - only, they kept growing.  The shape and twisted pointed teeth suggest some kind of predator dinosaur.",
     "diff": 5,
-    "proportional": { "hp": 2.5 },
+    "proportional": { "hp": 2.5, "weight": 7.4  },
     "relative": {
       "melee_dice": 1,
       "melee_damage": [ { "damage_type": "cut", "amount": 5 } ],
@@ -5122,7 +5122,6 @@
       { "id": "scratch", "damage_max_instance": [ { "damage_type": "cut", "amount": 23, "armor_multiplier": 0.8 } ] }
     ],
     "volume": "1000 L",
-    "weight": "4000 kg",
     "//": "When large volumes are fixed this should be 3500 L"
   },
   {
@@ -5154,7 +5153,7 @@
     "copy-from": "mon_skinosaurus_brute",
     "description": "This hideous colossus of plated bones and misshapen flesh drags its heavy, pointed limbs behind it.  Already strong and dangerous, bones grew around its form to protect it - only, they kept growing.  The twisted back sail means it must have been a spinosaurus once.",
     "diff": 5,
-    "proportional": { "hp": 2.5 },
+    "proportional": { "hp": 2.5, "weight": 7.4  },
     "relative": {
       "melee_dice": 1,
       "melee_damage": [ { "damage_type": "cut", "amount": 5 } ],
@@ -5198,7 +5197,7 @@
     "copy-from": "mon_sorvosaurus_brute",
     "description": "This hideous colossus of plated bones and misshapen flesh drags its heavy, pointed limbs behind it.  Already strong and dangerous, bones grew around its form to protect it - only, they kept growing.  The shape and twisted pointed teeth suggest some kind of predator dinosaur.",
     "diff": 5,
-    "proportional": { "hp": 2.5 },
+    "proportional": { "hp": 2.5, "weight": 7.4  },
     "relative": {
       "melee_dice": 1,
       "melee_damage": [ { "damage_type": "cut", "amount": 5 } ],
@@ -5242,7 +5241,7 @@
     "copy-from": "mon_sallosaurus_brute",
     "description": "This hideous colossus of plated bones and misshapen flesh drags its heavy, pointed limbs behind it.  Already strong and dangerous, bones grew around its form to protect it - only, they kept growing.  The shape and twisted pointed teeth suggest some kind of predator dinosaur.",
     "diff": 5,
-    "proportional": { "hp": 2.5 },
+    "proportional": { "hp": 2.5, "weight": 7.4  },
     "relative": {
       "melee_dice": 1,
       "melee_damage": [ { "damage_type": "cut", "amount": 5 } ],
@@ -5282,7 +5281,7 @@
     "copy-from": "mon_syrannosaurus_brute",
     "description": "This hideous colossus of plated bones and misshapen flesh drags its heavy, pointed limbs behind it.  Already strong and dangerous, bones grew around its form to protect it - only, they kept growing.  The shape and twisted pointed teeth suggest some kind of predator dinosaur.",
     "diff": 5,
-    "proportional": { "hp": 2.5 },
+    "proportional": { "hp": 2.5, "weight": 7.4  },
     "melee_dice": 5,
     "melee_dice_sides": 3,
     "melee_damage": [ { "damage_type": "cut", "amount": 35 } ],
@@ -5325,7 +5324,7 @@
     "copy-from": "mon_sallimimus_brute",
     "description": "This hideous colossus of plated bones and misshapen flesh drags its heavy, pointed limbs behind it.  Already strong and dangerous, bones grew around its form to protect it - only, they kept growing.  The shape and twisting pointed beak suggest some kind of beaked, two legged dinosaur.",
     "diff": 5,
-    "proportional": { "hp": 2.5 },
+    "proportional": { "hp": 2.5, "weight": 7.4  },
     "relative": {
       "melee_dice": 1,
       "melee_damage": [ { "damage_type": "stab", "amount": 5 } ],
@@ -5340,7 +5339,6 @@
       { "id": "scratch", "damage_max_instance": [ { "damage_type": "cut", "amount": 23, "armor_multiplier": 0.8 } ] }
     ],
     "volume": "1000 L",
-    "weight": "4400 kg",
     "//": "When large volumes are fixed this should be 3850 L"
   },
   {
@@ -5372,7 +5370,7 @@
     "copy-from": "mon_salcarius_brute",
     "description": "This hideous colossus of plated bones and misshapen flesh drags its heavy, pointed limbs behind it.  Already strong and dangerous, bones grew around its form to protect it - only, they kept growing.  The shape and twisting clawed arms suggest some kind of two legged dinosaur.",
     "diff": 5,
-    "proportional": { "hp": 2.5 },
+    "proportional": { "hp": 2.5, "weight": 7.4  },
     "relative": {
       "melee_dice": 1,
       "melee_damage": [ { "damage_type": "cut", "amount": 5 } ],
@@ -5386,8 +5384,7 @@
       { "id": "cut_throat" },
       { "id": "scratch", "damage_max_instance": [ { "damage_type": "cut", "amount": 23, "armor_multiplier": 0.8 } ] }
     ],
-    "volume": "875 L",
-    "weight": "1000 kg"
+    "volume": "875 L"
   },
   {
     "type": "MONSTER",
@@ -5418,7 +5415,7 @@
     "copy-from": "mon_serizinosaurus_brute",
     "description": "This hideous colossus of plated bones and misshapen flesh drags its heavy, pointed limbs behind it.  Already strong and dangerous, bones grew around its form to protect it - only, they kept growing.  The shape and twisting clawed arms suggest some kind of two legged dinosaur.",
     "diff": 5,
-    "proportional": { "hp": 2.5 },
+    "proportional": { "hp": 2.5, "weight": 7.4  },
     "relative": {
       "melee_dice": 1,
       "melee_damage": [ { "damage_type": "cut", "amount": 5 } ],
@@ -5433,7 +5430,6 @@
       { "id": "scratch", "damage_max_instance": [ { "damage_type": "cut", "amount": 23, "armor_multiplier": 0.8 } ] }
     ],
     "volume": "1000 L",
-    "weight": "40000 kg",
     "//": "When large volumes are fixed this should be 35000 L"
   },
   {
@@ -5465,7 +5461,7 @@
     "copy-from": "mon_sallimimus_brute",
     "description": "This hideous colossus of plated bones and misshapen flesh drags its heavy, pointed limbs behind it.  Already strong and dangerous, bones grew around its form to protect it - only, they kept growing.  The shape and twisting clawed arms suggest some kind of two legged dinosaur.",
     "diff": 5,
-    "proportional": { "hp": 2.5 },
+    "proportional": { "hp": 2.5, "weight": 7.4  },
     "relative": {
       "melee_dice": 1,
       "melee_damage": [ { "damage_type": "cut", "amount": 5 } ],
@@ -5480,7 +5476,6 @@
       { "id": "scratch", "damage_max_instance": [ { "damage_type": "cut", "amount": 23, "armor_multiplier": 0.8 } ] }
     ],
     "volume": "1000 L",
-    "weight": "8000 kg",
     "//": "When large volumes are fixed this should be 7000 L"
   },
   {
@@ -5512,7 +5507,7 @@
     "copy-from": "mon_sanzu_brute",
     "description": "This hideous colossus of plated bones and misshapen flesh drags its heavy, pointed limbs behind it.  Already strong and dangerous, bones grew around its form to protect it - only, they kept growing.  The shape and twisting beak suggest some kind of two legged beaked dinosaur.",
     "diff": 5,
-    "proportional": { "hp": 2.5 },
+    "proportional": { "hp": 2.5, "weight": 7.4  },
     "relative": {
       "melee_dice": 1,
       "melee_damage": [ { "damage_type": "cut", "amount": 5 } ],
@@ -5527,7 +5522,6 @@
       { "id": "scratch", "damage_max_instance": [ { "damage_type": "cut", "amount": 23, "armor_multiplier": 0.8 } ] }
     ],
     "volume": "1000 L",
-    "weight": "2500 kg",
     "//": "When large volumes are fixed this should be 2200 L"
   },
   {
@@ -5559,7 +5553,7 @@
     "copy-from": "mon_sutahraptor_brute",
     "description": "This hideous colossus of plated bones and misshapen flesh drags its heavy, pointed limbs behind it.  Already strong and dangerous, bones grew around its form to protect it - only, they kept growing.  The shape and twisting claws and sharp teeth suggest some kind of two legged dinosaur.",
     "diff": 5,
-    "proportional": { "hp": 2.5 },
+    "proportional": { "hp": 2.5, "weight": 7.4  },
     "relative": {
       "melee_dice": 1,
       "melee_damage": [ { "damage_type": "cut", "amount": 5 } ],
@@ -5574,7 +5568,49 @@
       { "id": "scratch", "damage_max_instance": [ { "damage_type": "cut", "amount": 23, "armor_multiplier": 0.8 } ] }
     ],
     "volume": "1000 L",
-    "weight": "5000 kg",
+    "//": "When large volumes are fixed this should be 4400 L"
+  },
+  {
+    "type": "MONSTER",
+    "id": "mon_skarahsaurus_brute",
+    "name": { "str": "skeletal sauropod brute" },
+    "copy-from": "mon_skarahsaurus",
+    "description": "Distorted outgrowths of calcified bone plates cover this dinosaur's rotting flesh.  Joints and cracks around its body ooze with black goo.",
+    "proportional": { "hp": 5 },
+    "relative": {
+      "melee_dice": -1,
+      "melee_dice_sides": 2,
+      "melee_damage": [ { "damage_type": "cut", "amount": 6 } ],
+      "vision_day": 35,
+      "vision_night": 3,
+      "armor": { "bash": 12, "cut": 15, "bullet": 6 }
+    },
+    "bleed_rate": 0,
+    "upgrades": { "half_life": 48, "into": "mon_skarahsaurus_hulk" },
+    "special_attacks": [
+      { "id": "smash", "throw_strength": 56, "cooldown": 45 },
+      { "id": "scratch", "damage_max_instance": [ { "damage_type": "cut", "amount": 15, "armor_multiplier": 0.6 } ] }
+    ]
+  },
+  {
+    "type": "MONSTER",
+    "id": "mon_skarahsaurus_hulk",
+    "name": { "str": "skeletal sauropod juggernaut" },
+    "copy-from": "mon_skarahsaurus_brute",
+    "description": "This hideous colossus of plated bones and misshapen flesh drags its long twisted tail behind it.  Already strong and dangerous, bones grew around its form to protect it - only, they kept growing.  The shape suggests some kind of four legged dinosaur.",
+    "diff": 5,
+    "proportional": { "hp": 2.5, "weight": 7.4  },
+    "relative": {
+      "melee_dice": 1,
+      "melee_damage": [ { "damage_type": "cut", "amount": 5 } ],
+      "armor": { "bash": 8, "cut": 15, "bullet": 6 }
+    },
+    "bleed_rate": 0,
+    "special_attacks": [
+      { "id": "smash", "throw_strength": 54 },
+      { "id": "scratch", "damage_max_instance": [ { "damage_type": "cut", "amount": 23, "armor_multiplier": 0.8 } ] }
+    ],
+    "volume": "1000 L",
     "//": "When large volumes are fixed this should be 4400 L"
   },
   {
@@ -5628,7 +5664,7 @@
     "copy-from": "mon_sescelosaurus_brute",
     "description": "This hideous colossus of plated bones and misshapen flesh drags its heavy, pointed limbs behind it.  Already strong and dangerous, bones grew around its form to protect it - only, they kept growing.  The shape and twisting pointed beak suggest some kind of beaked, two legged dinosaur.",
     "diff": 5,
-    "proportional": { "hp": 2.5 },
+    "proportional": { "hp": 2.5, "weight": 7.4  },
     "relative": {
       "melee_dice": 1,
       "melee_damage": [ { "damage_type": "stab", "amount": 5 } ],
@@ -5643,7 +5679,6 @@
       { "id": "scratch", "damage_max_instance": [ { "damage_type": "cut", "amount": 23, "armor_multiplier": 0.8 } ] }
     ],
     "volume": "1000 L",
-    "weight": "2500 kg",
     "//": "When large volumes are fixed this should be 2200 L"
   },
   {
